@@ -131,7 +131,9 @@ public class VotingAppService {
                 .stream()
                 .collect(Collectors.groupingBy(VoteResult::getDesignationName,
                         Collectors.maxBy(Comparator.comparingInt(VoteResult::getVoteCount))));
-        Map<String, Integer> totalVotesPerCandidate = voteResults.stream().collect(Collectors.groupingBy(VoteResult::getCandidateName,
+        Map<String, Integer> totalVotesPerCandidate = voteResults
+                .stream()
+                .collect(Collectors.groupingBy(VoteResult::getCandidateName,
                 Collectors.summingInt(VoteResult::getVoteCount)));
         VoteResultDto voteResultDto = new VoteResultDto();
         List<VoteResultDto.WinnerData> winnerData = winnersByDesignation.entrySet()
