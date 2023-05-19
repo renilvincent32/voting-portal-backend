@@ -35,6 +35,12 @@ public class VotingAppControllerAdvice {
         return new ErrorDto(ex.getMessage());
     }
 
+    @ExceptionHandler(IncorrectUsernamePasswordException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDto incorrectUsernamePasswordHandler(IncorrectUsernamePasswordException ex) {
+        return new ErrorDto(ex.getMessage());
+    }
+
     @ExceptionHandler(SQLException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorDto handleDBErrors(SQLException ex) { return new ErrorDto(ex.getMessage()); }

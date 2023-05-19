@@ -20,7 +20,7 @@ public class VotingAppController {
 
     @PostMapping("/login")
     public VoterDto login(@RequestBody LoginRequestDto request) {
-        return votingAppService.login(request.collegeId(), request.isAdmin());
+        return votingAppService.login(request.collegeId(), request.password(), request.isAdmin());
     }
 
     @PostMapping("/addDesignations")
@@ -51,7 +51,23 @@ public class VotingAppController {
 
 
     @PostMapping("/castVote")
-    public void castVote(@RequestBody CastVoteRequestDto request) {
-        votingAppService.castVote(request.collegeId(), request.candidateId());
+    public void castVote(@RequestBody List<CastVoteRequestDto> request) {
+        votingAppService.castVote(request);
+    }
+
+    @DeleteMapping("/deleteCandidate/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteCandidate(@PathVariable("id") int candidateId) {
+        votingAppService.deleteCandidate(candidateId);
+    }
+
+    @DeleteMapping("/deleteDesignation/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteDesignation(@PathVariable("id") int designationId) {
+        votingAppService.deleteDesignation(designationId);
+    }
+    @GetMapping("/fetchVoteResults")
+    public VoteResultDto fetchVoteResults() {
+        return votingAppService.fetchVoteResults();
     }
 }

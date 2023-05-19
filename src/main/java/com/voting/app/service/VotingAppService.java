@@ -4,26 +4,18 @@ import com.voting.app.dao.CandidateRepository;
 import com.voting.app.dao.DesignationRepository;
 import com.voting.app.dao.VoteRecordRepository;
 import com.voting.app.dao.VoterRepository;
-import com.voting.app.dto.CandidateDto;
-import com.voting.app.dto.DesignationDto;
-import com.voting.app.dto.VoterDto;
-import com.voting.app.entity.Candidate;
-import com.voting.app.entity.Designation;
-import com.voting.app.entity.VoteRecord;
-import com.voting.app.entity.Voter;
-import com.voting.app.exception.CandidateNotFoundException;
-import com.voting.app.exception.DesignationNotFound;
-import com.voting.app.exception.NotAdminException;
-import com.voting.app.exception.VoterNotFoundException;
+import com.voting.app.dto.*;
+import com.voting.app.entity.*;
+import com.voting.app.exception.*;
 import com.voting.app.transformer.CandidateTransformer;
 import com.voting.app.transformer.DesignationTransformer;
 import com.voting.app.transformer.VoterTransformer;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Spliterator;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -36,6 +28,7 @@ public class VotingAppService {
     private final VoterTransformer voterTransformer;
     private final CandidateTransformer candidateTransformer;
     private final DesignationTransformer designationTransformer;
+    private final PasswordEncoder passwordEncoder;
 
     public VotingAppService(VoterRepository voterRepository,
                             DesignationRepository designationRepository,
@@ -43,7 +36,8 @@ public class VotingAppService {
                             VoteRecordRepository voteRecordRepository,
                             VoterTransformer voterTransformer,
                             CandidateTransformer candidateTransformer,
-                            DesignationTransformer designationTransformer) {
+                            DesignationTransformer designationTransformer,
+                            PasswordEncoder passwordEncoder) {
         this.voterRepository = voterRepository;
         this.designationRepository = designationRepository;
         this.candidateRepository = candidateRepository;
@@ -51,13 +45,23 @@ public class VotingAppService {
         this.voterTransformer = voterTransformer;
         this.candidateTransformer = candidateTransformer;
         this.designationTransformer = designationTransformer;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public VoterDto login(String collegeId, boolean isAdmin) {
-        Optional<Voter> voter = voterRepository.findByCollegeId(collegeId);
-        VoterDto voterDto = voter.map(voterTransformer::from).orElseThrow(() -> new VoterNotFoundException(collegeId));
-        if (isAdmin && !voterDto.isAdmin()) {
-            throw new NotAdminException(collegeId);
+    public VoterDto login(String collegeId, String password, boolean isAdmin) {
+        VoterDto voterDto;
+        if (isAdmin) {
+            Optional<Voter> voter = voterRepository.findByCollegeId(collegeId);
+            voterDto = voter.map(voterTransformer::from)
+                    .orElseThrow(() -> new VoterNotFoundException(collegeId));
+            voter.filter(v -> passwordEncoder.matches(password, v.getPassword()))
+                    .orElseThrow(IncorrectUsernamePasswordException::new);
+            if (!voterDto.isAdmin()) {
+                throw new NotAdminException(collegeId);
+            }
+        } else {
+            Optional<Voter> voter = voterRepository.findByCollegeId(collegeId);
+            voterDto = voter.map(voterTransformer::from).orElseThrow(() -> new VoterNotFoundException(collegeId));
         }
         return voterDto;
     }
@@ -89,16 +93,18 @@ public class VotingAppService {
         return candidateTransformer.from(savedCandidate);
     }
 
-    public void castVote(String collegeId, int candidateId) {
-        Voter voter = voterRepository.findByCollegeId(collegeId)
-                .orElseThrow(() -> new VoterNotFoundException(collegeId));
-        Candidate candidate = candidateRepository.findById(candidateId)
-                .orElseThrow(() -> new CandidateNotFoundException(candidateId));
-        VoteRecord voteRecord = new VoteRecord()
-                .setVoter(voter)
-                .setCandidate(candidate)
-                .setCreatedOn(LocalDateTime.now());
-        voteRecordRepository.save(voteRecord);
+    public void castVote(List<CastVoteRequestDto> request) {
+        request.forEach(r -> {
+            Voter voter = voterRepository.findByCollegeId(r.collegeId())
+                    .orElseThrow(() -> new VoterNotFoundException(r.collegeId()));
+            Candidate candidate = candidateRepository.findById(r.candidateId())
+                    .orElseThrow(() -> new CandidateNotFoundException(r.candidateId()));
+            VoteRecord voteRecord = new VoteRecord()
+                    .setVoter(voter)
+                    .setCandidate(candidate)
+                    .setCreatedOn(LocalDateTime.now());
+            voteRecordRepository.save(voteRecord);
+        });
     }
 
     public List<DesignationDto> findAllDesignations() {
@@ -109,5 +115,41 @@ public class VotingAppService {
     public List<CandidateDto> findAllCandidates() {
         Spliterator<Candidate> allDesignations = candidateRepository.findAll().spliterator();
         return StreamSupport.stream(allDesignations, false).map(candidateTransformer::from).toList();
+    }
+
+    public void deleteCandidate(int candidateId) {
+        candidateRepository.deleteById(candidateId);
+    }
+
+    public void deleteDesignation(int designationId) {
+        designationRepository.deleteById(designationId);
+    }
+
+    public VoteResultDto fetchVoteResults() {
+        List<VoteResult> voteResults = voteRecordRepository.fetchVoteResults();
+        Map<String, Optional<VoteResult>> winnersByDesignation = voteResults
+                .stream()
+                .collect(Collectors.groupingBy(VoteResult::getDesignationName,
+                        Collectors.maxBy(Comparator.comparingInt(VoteResult::getVoteCount))));
+        Map<String, Integer> totalVotesPerCandidate = voteResults.stream().collect(Collectors.groupingBy(VoteResult::getCandidateName,
+                Collectors.summingInt(VoteResult::getVoteCount)));
+        VoteResultDto voteResultDto = new VoteResultDto();
+        List<VoteResultDto.WinnerData> winnerData = winnersByDesignation.entrySet()
+                .stream()
+                .map(entry -> new VoteResultDto.WinnerData()
+                        .setDesignationName(entry.getKey())
+                        .setCandidateName(entry.getValue()
+                                .map(VoteResult::getCandidateName)
+                                .orElse("")))
+                .toList();
+        List<VoteResultDto.CandidateData> candidateData = totalVotesPerCandidate.entrySet()
+                .stream()
+                .map(entry -> new VoteResultDto.CandidateData()
+                        .setCandidateName(entry.getKey())
+                        .setVoteCount(entry.getValue()))
+                .toList();
+        return voteResultDto
+                .setCandidateData(candidateData)
+                .setWinnerData(winnerData);
     }
 }

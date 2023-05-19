@@ -15,7 +15,7 @@ public class Designation {
 
     private LocalDateTime createdOn;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "designation")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "designation", cascade = CascadeType.REMOVE)
     private List<Candidate> candidates;
 
     public int getDesignationId() {

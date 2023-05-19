@@ -3,6 +3,7 @@ package com.voting.app.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Candidate {
@@ -28,6 +29,9 @@ public class Candidate {
     @ManyToOne
     @JoinColumn(name = "designation_id")
     private Designation designation;
+
+    @OneToMany(mappedBy = "candidate", cascade = CascadeType.REMOVE)
+    private List<VoteRecord> voteRecords;
 
     public int getCandidateId() {
         return candidateId;
@@ -107,6 +111,15 @@ public class Candidate {
 
     public Candidate setCreatedOn(LocalDateTime createdOn) {
         this.createdOn = createdOn;
+        return this;
+    }
+
+    public List<VoteRecord> getVoteRecords() {
+        return voteRecords;
+    }
+
+    public Candidate setVoteRecords(List<VoteRecord> voteRecords) {
+        this.voteRecords = voteRecords;
         return this;
     }
 }
