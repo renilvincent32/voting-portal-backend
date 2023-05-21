@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS candidate (
    last_name varchar(20),
    branch varchar(50) not null,
    symbol varchar(20) unique not null,
-   img_path varchar(50) unique not null,
+   img_data oid,
    campaign_quote varchar(100) unique not null,
    designation_id int not null,
    created_on timestamp not null,

@@ -20,7 +20,8 @@ public class Candidate {
 
     private String symbol;
 
-    private String imgPath;
+    @Lob
+    private byte[] imgData;
 
     private String campaignQuote;
 
@@ -78,12 +79,12 @@ public class Candidate {
         return this;
     }
 
-    public String getImgPath() {
-        return imgPath;
+    public byte[] getImgData() {
+        return imgData;
     }
 
-    public Candidate setImgPath(String imgPath) {
-        this.imgPath = imgPath;
+    public Candidate setImgData(byte[] imgData) {
+        this.imgData = imgData;
         return this;
     }
 

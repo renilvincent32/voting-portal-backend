@@ -12,6 +12,7 @@ import com.voting.app.transformer.DesignationTransformer;
 import com.voting.app.transformer.VoterTransformer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -76,16 +77,16 @@ public class VotingAppService {
         designationRepository.saveAll(designationsToBeSaved);
     }
 
-    public CandidateDto addCandidate(String firstName, String lastName, String branch, String imgPath,
-                                     String campaignQuote, String designationName, String symbol) {
+    public CandidateDto addCandidate(String firstName, String lastName, String branch,
+                                     String campaignQuote, String designationName, String symbol, byte[] imgBytes) {
         Designation designation = designationRepository.findByDesignationName(designationName)
                 .orElseThrow(() -> new DesignationNotFound(designationName));
         Candidate candidate = new Candidate()
                 .setFirstName(firstName)
                 .setLastName(lastName)
                 .setBranch(branch)
+                .setImgData(imgBytes)
                 .setCampaignQuote(campaignQuote)
-                .setImgPath(imgPath)
                 .setSymbol(symbol)
                 .setDesignation(designation)
                 .setCreatedOn(LocalDateTime.now());
@@ -107,6 +108,7 @@ public class VotingAppService {
         });
     }
 
+    @Transactional
     public List<DesignationDto> findAllDesignations() {
         Spliterator<Designation> allDesignations = designationRepository.findAll().spliterator();
         return StreamSupport.stream(allDesignations, false).map(designationTransformer::from).toList();

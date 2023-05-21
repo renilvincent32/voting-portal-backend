@@ -9,7 +9,7 @@ public class CandidateTransformer implements EntityTransformer<Candidate, Candid
     @Override
     public CandidateDto from(Candidate candidate) {
         return new CandidateDto(candidate.getCandidateId(), candidate.getFirstName(), candidate.getLastName(),
-                candidate.getBranch(), candidate.getImgPath(), candidate.getSymbol(), candidate.getCampaignQuote(),
+                candidate.getBranch(), candidate.getImgData(), candidate.getSymbol(), candidate.getCampaignQuote(),
                 candidate.getDesignation().getDesignationName());
     }
 }
