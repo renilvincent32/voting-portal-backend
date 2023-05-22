@@ -49,7 +49,9 @@ public class VotingAppController {
                                       @RequestParam String campaignQuote,
                                       @RequestParam String designation,
                                       @RequestPart(required = false, value = "avatar") MultipartFile multipartFile) throws IOException {
-        return votingAppService.addCandidate(firstName, lastName, branch, campaignQuote, designation, symbol, multipartFile.getBytes());
+
+        return votingAppService.addCandidate(firstName, lastName, branch, campaignQuote, designation, symbol,
+                multipartFile != null ?multipartFile.getBytes() : null);
     }
 
     @GetMapping("/getCandidates")
