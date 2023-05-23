@@ -53,6 +53,7 @@ public class VoteResultDto {
 
         private String candidateName;
         private int voteCount;
+        private String designationName;
 
         public String getCandidateName() {
             return candidateName;
@@ -69,6 +70,15 @@ public class VoteResultDto {
 
         public CandidateData setVoteCount(int voteCount) {
             this.voteCount = voteCount;
+            return this;
+        }
+
+        public String getDesignationName() {
+            return designationName;
+        }
+
+        public CandidateData setDesignationName(String designationName) {
+            this.designationName = designationName;
             return this;
         }
     }

@@ -129,6 +129,9 @@ public class VotingAppService {
 
     public VoteResultDto fetchVoteResults() {
         List<VoteResult> voteResults = voteRecordRepository.fetchVoteResults();
+        Map<String, String> candidateDesignationMap = voteResults
+                .stream()
+                .collect(Collectors.toMap(VoteResult::getCandidateName, VoteResult::getDesignationName));
         Map<String, Optional<VoteResult>> winnersByDesignation = voteResults
                 .stream()
                 .collect(Collectors.groupingBy(VoteResult::getDesignationName,
@@ -150,7 +153,9 @@ public class VotingAppService {
                 .stream()
                 .map(entry -> new VoteResultDto.CandidateData()
                         .setCandidateName(entry.getKey())
-                        .setVoteCount(entry.getValue()))
+                        .setVoteCount(entry.getValue())
+                        .setDesignationName(candidateDesignationMap.get(entry.getKey())))
+                .sorted(Comparator.comparingInt(VoteResultDto.CandidateData::getVoteCount).reversed())
                 .toList();
         return voteResultDto
                 .setCandidateData(candidateData)
