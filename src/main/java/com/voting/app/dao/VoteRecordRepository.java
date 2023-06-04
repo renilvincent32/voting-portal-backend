@@ -2,6 +2,7 @@ package com.voting.app.dao;
 
 import com.voting.app.entity.VoteRecord;
 import com.voting.app.entity.VoteResult;
+import com.voting.app.entity.Voter;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -17,4 +18,6 @@ public interface VoteRecordRepository extends CrudRepository<VoteRecord, Integer
             group by c.candidate_id, d.designation_id
             """, nativeQuery = true)
     List<VoteResult> fetchVoteResults();
+
+    List<VoteRecord> findByVoter(Voter voter);
 }

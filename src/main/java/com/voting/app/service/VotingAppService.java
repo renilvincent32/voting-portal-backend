@@ -161,4 +161,11 @@ public class VotingAppService {
                 .setCandidateData(candidateData)
                 .setWinnerData(winnerData);
     }
+
+    public boolean voteAlready(String collegeId) {
+        Optional<Voter> voter = voterRepository.findByCollegeId(collegeId);
+        return voter.map(voteRecordRepository::findByVoter)
+                .map(voteResults -> voteResults.size() > 0)
+                .orElse(false);
+    }
 }

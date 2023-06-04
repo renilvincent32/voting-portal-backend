@@ -8,5 +8,4 @@ import java.util.Optional;
 public interface VoterRepository extends CrudRepository<Voter, Integer> {
 
     Optional<Voter> findByCollegeId(String collegeId);
-    Optional<Voter> findByCollegeIdAndPassword(String collegeId, String password);
 }

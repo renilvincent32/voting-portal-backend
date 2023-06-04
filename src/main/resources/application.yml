@@ -6,11 +6,11 @@ server:
       max: 50
       min-spare: 5
 spring:
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/voting-app-db
-    username: user
-    password: password
+#  datasource:
+#    driver-class-name: org.postgresql.Driver
+#    url: jdbc:postgresql://localhost:5432/voting-app-db
+#    username: user
+#    password: password
   jpa:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect

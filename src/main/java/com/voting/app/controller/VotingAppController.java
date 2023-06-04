@@ -80,4 +80,9 @@ public class VotingAppController {
     public VoteResultDto fetchVoteResults() {
         return votingAppService.fetchVoteResults();
     }
+
+    @GetMapping("/voteAlready/{id}")
+    public boolean voteAlready(@PathVariable("id") String collegeId) {
+        return votingAppService.voteAlready(collegeId);
+    }
 }
