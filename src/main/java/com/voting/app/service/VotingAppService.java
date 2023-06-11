@@ -143,11 +143,14 @@ public class VotingAppService {
         VoteResultDto voteResultDto = new VoteResultDto();
         List<VoteResultDto.WinnerData> winnerData = winnersByDesignation.entrySet()
                 .stream()
-                .map(entry -> new VoteResultDto.WinnerData()
-                        .setDesignationName(entry.getKey())
-                        .setCandidateName(entry.getValue()
-                                .map(VoteResult::getCandidateName)
-                                .orElse("")))
+                .map(entry -> entry.getValue().map(voteResult -> {
+                    if (voteResult.getVoteCount() > 0) {
+                        return new VoteResultDto.WinnerData()
+                                .setDesignationName(entry.getKey())
+                                .setCandidateName(voteResult.getCandidateName());
+                    }
+                    return new VoteResultDto.WinnerData().setDesignationName(entry.getKey());
+                    }).orElse(null))
                 .toList();
         List<VoteResultDto.CandidateData> candidateData = totalVotesPerCandidate.entrySet()
                 .stream()
