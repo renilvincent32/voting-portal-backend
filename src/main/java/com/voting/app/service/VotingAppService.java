@@ -149,7 +149,9 @@ public class VotingAppService {
                                 .setDesignationName(entry.getKey())
                                 .setCandidateName(voteResult.getCandidateName());
                     }
-                    return new VoteResultDto.WinnerData().setDesignationName(entry.getKey());
+                    return new VoteResultDto.WinnerData()
+                            .setDesignationName(entry.getKey())
+                            .setCandidateName("Undeclared");
                     }).orElse(null))
                 .toList();
         List<VoteResultDto.CandidateData> candidateData = totalVotesPerCandidate.entrySet()
